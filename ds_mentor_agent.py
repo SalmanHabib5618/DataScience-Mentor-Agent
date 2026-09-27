@@ -27,7 +27,7 @@ Answer with one word only."""
 if isinstance(content, list):
     content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
 intent = content.strip().lower()
-    return state
+return state
 
 
 def concept_node(state: AgentState) -> AgentState:
