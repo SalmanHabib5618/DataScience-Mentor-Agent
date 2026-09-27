@@ -52,11 +52,9 @@ def fallback_node(state: AgentState) -> AgentState:
 
 
 def route_decision(state: AgentState) -> str:
-    if "concept" in state["intent"]:
-        return "concept"
     if "code" in state["intent"]:
         return "code"
-    return "fallback"
+    return "concept"
 
 
 graph = StateGraph(AgentState)
