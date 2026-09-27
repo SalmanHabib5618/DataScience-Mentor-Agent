@@ -8,7 +8,7 @@ from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-os.environ["GOOGLE_API_KEY"] = "YOUR_GEMINI_API_KEY"
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
 
