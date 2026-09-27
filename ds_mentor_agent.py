@@ -23,11 +23,13 @@ def router_node(state: AgentState) -> AgentState:
 Query: {state['query']}
 Answer with one word only."""
     result = llm.invoke(prompt)
-    content = result.content
-if isinstance(content, list):
-    content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
-intent = content.strip().lower()
 
+    content = result.content
+    if isinstance(content, list):
+        content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
+
+    state["intent"] = content.strip().lower()
+    return state
 
 def concept_node(state: AgentState) -> AgentState:
     prompt = f"Explain this DS concept simply with example:\n{state['query']}"
