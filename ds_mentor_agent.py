@@ -1,15 +1,23 @@
 """
-DS Mentor Agent - Full Version
-Nodes: Router -> Concept / Code / Fallback
+DS Mentor Agent - Fixed Version
+Nodes: Router -> Concept / Code
 """
-import streamlit as st
+
 import os
+import streamlit as st
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash")
+
+
+def extract_text(content):
+    """Handles both plain string and list-of-parts response formats."""
+    if isinstance(content, list):
+        return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
+    return content
 
 
 class AgentState(TypedDict):
@@ -23,17 +31,14 @@ def router_node(state: AgentState) -> AgentState:
 Query: {state['query']}
 Answer with one word only."""
     result = llm.invoke(prompt)
-
-    content = result.content
-    if isinstance(content, list):
-        content = "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
-
-    state["intent"] = content.strip().lower()
+    state["intent"] = extract_text(result.content).strip().lower()
     return state
+
 
 def concept_node(state: AgentState) -> AgentState:
     prompt = f"Explain this DS concept simply with example:\n{state['query']}"
-    state["response"] = llm.invoke(prompt).content
+    result = llm.invoke(prompt)
+    state["response"] = extract_text(result.content)
     return state
 
 
@@ -42,12 +47,8 @@ def code_node(state: AgentState) -> AgentState:
 Debug, explain, or write code for this request:
 {state['query']}
 Give working code + short explanation."""
-    state["response"] = llm.invoke(prompt).content
-    return state
-
-
-def fallback_node(state: AgentState) -> AgentState:
-    state["response"] = "Query type not supported yet."
+    result = llm.invoke(prompt)
+    state["response"] = extract_text(result.content)
     return state
 
 
@@ -61,16 +62,14 @@ graph = StateGraph(AgentState)
 graph.add_node("router", router_node)
 graph.add_node("concept", concept_node)
 graph.add_node("code", code_node)
-graph.add_node("fallback", fallback_node)
 
 graph.set_entry_point("router")
 graph.add_conditional_edges(
     "router", route_decision,
-    {"concept": "concept", "code": "code", "fallback": "fallback"}
+    {"concept": "concept", "code": "code"}
 )
 graph.add_edge("concept", END)
 graph.add_edge("code", END)
-graph.add_edge("fallback", END)
 
 app = graph.compile()
 
