@@ -11,45 +11,38 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 .stApp { background-color: #0F172A; color: #F8FAFC; }
 
-.hero-title { font-family: 'Lora', serif; font-size: 2.4rem; font-weight: 700;
-  color: #F8FAFC; margin-bottom: 0.2rem; }
-.hero-sub { color: #94A3B8; font-size: 1rem; margin-bottom: 2rem; }
+.hero-title { font-family: 'Lora', serif; font-size: 2rem; font-weight: 700;
+  color: #F8FAFC; margin-bottom: 0.1rem; }
+.hero-sub { color: #94A3B8; font-size: 0.9rem; margin-bottom: 1.2rem; }
 
-.stTextInput > div > div > input {
-  background-color: #1E293B; color: #F8FAFC; border: 1px solid #334155;
-  border-radius: 8px; padding: 0.7rem;
+[data-testid="stChatMessage"] {
+  background-color: #1E293B; border-radius: 12px; padding: 0.8rem 1rem;
+  margin-bottom: 0.6rem; border-left: 3px solid #D4A853;
 }
 
-.stButton > button {
-  background-color: #D4A853; color: #0F172A; border: none;
-  border-radius: 8px; font-weight: 600; padding: 0.5rem 1.5rem;
+.stChatInput textarea, [data-testid="stChatInput"] textarea {
+  background-color: #1E293B !important; color: #F8FAFC !important;
+  border: 1px solid #334155 !important;
 }
-.stButton > button:hover { background-color: #E8BE6D; color: #0F172A; }
 
 .plus-btn button {
   background-color: #1E293B !important; color: #D4A853 !important;
   border: 1px solid #334155 !important; border-radius: 50% !important;
-  width: 42px !important; height: 42px !important; font-size: 1.3rem !important;
+  width: 40px !important; height: 40px !important; font-size: 1.2rem !important;
   font-weight: 700 !important; padding: 0 !important;
 }
 .plus-btn button:hover { background-color: #334155 !important; border-color: #D4A853 !important; }
 
 .stFileUploader > div > div {
-  background-color: #1E293B; border: 1px dashed #334155; border-radius: 8px;
+  background-color: #0F172A; border: 1px dashed #334155; border-radius: 8px;
 }
 .stFileUploader label { color: #94A3B8 !important; font-size: 0.85rem; }
-
-.response-card {
-  background-color: #1E293B; border-left: 3px solid #D4A853;
-  border-radius: 8px; padding: 1.2rem; margin-top: 1.2rem;
-  color: #E2E8F0; line-height: 1.6;
-}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- Logo (inline SVG) ----------
+# ---------- Logo + Header ----------
 LOGO_SVG = """
-<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+<svg width="46" height="46" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
   <circle cx="30" cy="30" r="29" fill="#0F172A" stroke="#D4A853" stroke-width="1.5"/>
   <circle cx="20" cy="22" r="3.2" fill="#D4A853"/>
   <circle cx="40" cy="22" r="3.2" fill="#D4A853"/>
@@ -59,32 +52,33 @@ LOGO_SVG = """
   <line x1="40" y1="22" x2="30" y2="40" stroke="#D4A853" stroke-width="1.2"/>
 </svg>
 """
-
 col1, col2 = st.columns([1, 6])
 with col1:
     st.markdown(LOGO_SVG, unsafe_allow_html=True)
 with col2:
     st.markdown('<div class="hero-title">DS Mentor</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-sub">Your personal Data Science mentor — ask anything.</div>', unsafe_allow_html=True)
 
-st.markdown('<div class="hero-sub">Your personal guide through Data Science — concepts, code, and clarity.</div>', unsafe_allow_html=True)
-
-# ---------- Chat history (custom feature) ----------
-if "history" not in st.session_state:
-    st.session_state.history = []
-
+# ---------- State ----------
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 if "uploaded_file" not in st.session_state:
     st.session_state.uploaded_file = None
 if "uploaded_kind" not in st.session_state:
     st.session_state.uploaded_kind = None
 
-col_plus, col_input = st.columns([1, 8])
+# ---------- Render chat history ----------
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"], avatar="◆" if msg["role"] == "assistant" else "🧑"):
+        st.markdown(msg["content"])
 
+# ---------- Attach (+) control, above chat input ----------
+col_plus, col_note = st.columns([1, 8])
 with col_plus:
     st.markdown('<div class="plus-btn">', unsafe_allow_html=True)
     with st.popover("➕"):
-        st.markdown("**Attach to your question**")
+        st.markdown("**Attach to your next message**")
         choice = st.radio("Type", ["Code / Text file", "CSV / Data file", "Image"], label_visibility="collapsed")
-
         if choice == "Code / Text file":
             f = st.file_uploader("Upload code/text", type=["py", "txt", "md", "ipynb"], key="up_code")
         elif choice == "CSV / Data file":
@@ -102,47 +96,36 @@ with col_plus:
                 st.session_state.uploaded_file = None
                 st.session_state.uploaded_kind = None
     st.markdown('</div>', unsafe_allow_html=True)
+with col_note:
+    if st.session_state.uploaded_file is not None:
+        st.caption(f"📎 {st.session_state.uploaded_file.name} will be attached to your next message")
 
-with col_input:
-    query = st.text_input(
-        "Ask your Data Science question",
-        placeholder="e.g. Explain bias-variance tradeoff",
-        label_visibility="collapsed"
-    )
+# ---------- Chat input ----------
+prompt = st.chat_input("Ask your Data Science question...")
 
-if st.session_state.uploaded_file is not None:
-    st.caption(f"📎 {st.session_state.uploaded_file.name} attached")
+if prompt:
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar="🧑"):
+        st.markdown(prompt)
 
-col_a, col_b = st.columns([1, 5])
-with col_a:
-    ask = st.button("Ask")
-with col_b:
-    clear = st.button("Clear history")
-
-if clear:
-    st.session_state.history = []
-
-if ask and query:
-    final_query = query
+    final_query = prompt
     f = st.session_state.uploaded_file
     if f is not None:
         try:
             if st.session_state.uploaded_kind == "Image":
-                final_query = f"{query}\n\n[An image file '{f.name}' was attached. Describe how you'd approach analyzing it as a beginner-friendly guide, since direct image reading isn't available here.]"
+                final_query = f"{prompt}\n\n[An image file '{f.name}' was attached. Guide how to approach analyzing it, since direct image reading isn't available here.]"
             else:
                 f.seek(0)
                 file_content = f.read().decode("utf-8", errors="ignore")[:3000]
-                final_query = f"{query}\n\n[Attached file: {f.name}]\n{file_content}"
+                final_query = f"{prompt}\n\n[Attached file: {f.name}]\n{file_content}"
         except Exception:
             pass
-    result = app.invoke({"query": final_query, "intent": "", "response": ""})
-    st.session_state.history.insert(0, {"q": query, "a": result["response"], "intent": result["intent"]})
+        st.session_state.uploaded_file = None
+        st.session_state.uploaded_kind = None
 
-# ---------- Display responses ----------
-for item in st.session_state.history:
-    st.markdown(f"""
-    <div class="response-card">
-      <b style="color:#D4A853;">You asked:</b> {item['q']}<br><br>
-      {item['a']}
-    </div>
-    """, unsafe_allow_html=True)
+    with st.chat_message("assistant", avatar="◆"):
+        with st.spinner("Thinking..."):
+            result = app.invoke({"query": final_query, "intent": "", "response": ""})
+            st.markdown(result["response"])
+
+    st.session_state.messages.append({"role": "assistant", "content": result["response"]})
