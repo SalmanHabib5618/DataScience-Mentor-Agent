@@ -20,18 +20,36 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
   margin-bottom: 0.6rem; border-left: 3px solid #D4A853;
 }
 
-.stChatInput textarea, [data-testid="stChatInput"] textarea {
-  background-color: #1E293B !important; color: #F8FAFC !important;
-  border: 1px solid #334155 !important;
+/* Bottom fixed bar that wraps the chat input */
+[data-testid="stBottom"], [data-testid="stBottom"] > div, .stBottomBlockContainer {
+  background-color: #0F172A !important;
 }
+[data-testid="stChatInput"] {
+  background-color: #1E293B !important; border: 1px solid #334155 !important;
+  border-radius: 10px !important;
+}
+[data-testid="stChatInput"] textarea {
+  background-color: transparent !important; color: #F8FAFC !important;
+}
+[data-testid="stChatInput"] textarea::placeholder { color: #94A3B8 !important; }
+[data-testid="stChatInputSubmitButton"] {
+  background-color: #D4A853 !important; border-radius: 8px !important;
+}
+[data-testid="stChatInputSubmitButton"] svg { fill: #0F172A !important; }
 
-.plus-btn button {
+/* Popover (+) trigger button */
+[data-testid="stPopover"] button {
   background-color: #1E293B !important; color: #D4A853 !important;
   border: 1px solid #334155 !important; border-radius: 50% !important;
-  width: 40px !important; height: 40px !important; font-size: 1.2rem !important;
+  width: 42px !important; height: 42px !important; font-size: 1.2rem !important;
   font-weight: 700 !important; padding: 0 !important;
 }
-.plus-btn button:hover { background-color: #334155 !important; border-color: #D4A853 !important; }
+[data-testid="stPopover"] button:hover {
+  background-color: #334155 !important; border-color: #D4A853 !important;
+}
+[data-testid="stPopoverBody"] {
+  background-color: #1E293B !important; border: 1px solid #334155 !important;
+}
 
 .stFileUploader > div > div {
   background-color: #0F172A; border: 1px dashed #334155; border-radius: 8px;
@@ -75,7 +93,6 @@ for msg in st.session_state.messages:
 # ---------- Attach (+) control, above chat input ----------
 col_plus, col_note = st.columns([1, 8])
 with col_plus:
-    st.markdown('<div class="plus-btn">', unsafe_allow_html=True)
     with st.popover("➕"):
         st.markdown("**Attach to your next message**")
         choice = st.radio("Type", ["Code / Text file", "CSV / Data file", "Image"], label_visibility="collapsed")
@@ -95,7 +112,6 @@ with col_plus:
             if st.button("Remove attachment"):
                 st.session_state.uploaded_file = None
                 st.session_state.uploaded_kind = None
-    st.markdown('</div>', unsafe_allow_html=True)
 with col_note:
     if st.session_state.uploaded_file is not None:
         st.caption(f"📎 {st.session_state.uploaded_file.name} will be attached to your next message")
