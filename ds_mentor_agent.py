@@ -88,9 +88,12 @@ def router_node(state: AgentState) -> AgentState:
     prompt = f"""Classify the query into exactly ONE of these words: {options}
 Query: {state['query']}
 Answer with one word only."""
-    result = llm.invoke(prompt)
-    intent = extract_text(result.content).strip().lower()
-    state["intent"] = intent if intent in INTENTS else "concept"
+    try:
+        result = llm.invoke(prompt)
+        intent = extract_text(result.content).strip().lower()
+        state["intent"] = intent if intent in INTENTS else "concept"
+    except Exception:
+        state["intent"] = "concept"  # safe fallback, skip router on rate-limit
     return state
 
 
