@@ -26,6 +26,11 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 }
 .stButton > button:hover { background-color: #E8BE6D; color: #0F172A; }
 
+.stFileUploader > div > div {
+  background-color: #1E293B; border: 1px dashed #334155; border-radius: 8px;
+}
+.stFileUploader label { color: #94A3B8 !important; font-size: 0.85rem; }
+
 .response-card {
   background-color: #1E293B; border-left: 3px solid #D4A853;
   border-radius: 8px; padding: 1.2rem; margin-top: 1.2rem;
@@ -61,6 +66,9 @@ if "history" not in st.session_state:
 
 query = st.text_input("Ask your Data Science question", placeholder="e.g. Explain bias-variance tradeoff")
 
+with st.expander("➕ Attach a file (code / CSV / notes)", expanded=False):
+    uploaded_file = st.file_uploader("Attach", type=["py", "csv", "txt", "md"], label_visibility="collapsed")
+
 col_a, col_b = st.columns([1, 5])
 with col_a:
     ask = st.button("Ask")
@@ -71,7 +79,14 @@ if clear:
     st.session_state.history = []
 
 if ask and query:
-    result = app.invoke({"query": query, "intent": "", "response": ""})
+    final_query = query
+    if uploaded_file is not None:
+        try:
+            file_content = uploaded_file.read().decode("utf-8", errors="ignore")[:3000]
+            final_query = f"{query}\n\n[Attached file: {uploaded_file.name}]\n{file_content}"
+        except Exception:
+            pass
+    result = app.invoke({"query": final_query, "intent": "", "response": ""})
     st.session_state.history.insert(0, {"q": query, "a": result["response"], "intent": result["intent"]})
 
 # ---------- Display responses ----------
