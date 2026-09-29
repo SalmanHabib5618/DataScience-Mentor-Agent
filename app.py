@@ -20,33 +20,29 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
   margin-bottom: 0.6rem; border-left: 3px solid #D4A853;
 }
 
-/* Bottom fixed bar that wraps the chat input */
-[data-testid="stBottom"], [data-testid="stBottom"] > div, .stBottomBlockContainer {
-  background-color: #0F172A !important;
+/* Merged input bar container */
+.input-bar {
+  background-color: #1E293B; border: 1px solid #334155; border-radius: 14px;
+  padding: 0.5rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;
 }
-[data-testid="stChatInput"] {
-  background-color: #1E293B !important; border: 1px solid #334155 !important;
-  border-radius: 10px !important;
-}
-[data-testid="stChatInput"] textarea {
-  background-color: transparent !important; color: #F8FAFC !important;
-}
-[data-testid="stChatInput"] textarea::placeholder { color: #94A3B8 !important; }
-[data-testid="stChatInputSubmitButton"] {
-  background-color: #D4A853 !important; border-radius: 8px !important;
-}
-[data-testid="stChatInputSubmitButton"] svg { fill: #0F172A !important; }
-
-/* Popover (+) trigger button */
-[data-testid="stPopover"] button {
-  background-color: #1E293B !important; color: #D4A853 !important;
+.input-bar [data-testid="stPopover"] button,
+.input-bar .stButton button {
+  background-color: transparent !important; color: #D4A853 !important;
   border: 1px solid #334155 !important; border-radius: 50% !important;
-  width: 42px !important; height: 42px !important; font-size: 1.2rem !important;
+  width: 38px !important; height: 38px !important; font-size: 1.1rem !important;
   font-weight: 700 !important; padding: 0 !important;
 }
-[data-testid="stPopover"] button:hover {
+.input-bar [data-testid="stPopover"] button:hover,
+.input-bar .stButton button:hover {
   background-color: #334155 !important; border-color: #D4A853 !important;
 }
+.input-bar .stTextInput input {
+  background-color: transparent !important; border: none !important;
+  color: #F8FAFC !important; box-shadow: none !important; padding: 0.5rem 0 !important;
+}
+.input-bar .stTextInput input::placeholder { color: #94A3B8 !important; }
+.input-bar .stTextInput > div { border: none !important; background: transparent !important; }
+
 [data-testid="stPopoverBody"] {
   background-color: #1E293B !important; border: 1px solid #334155 !important;
 }
@@ -91,10 +87,17 @@ for msg in st.session_state.messages:
         st.markdown(msg["content"])
 
 # ---------- Attach (+) control, above chat input ----------
-col_plus, col_note = st.columns([1, 8])
-with col_plus:
+# ---------- Merged input bar: [+] [text] [send] ----------
+if st.session_state.get("clear_input"):
+    st.session_state.chat_text = ""
+    st.session_state.clear_input = False
+
+st.markdown('<div class="input-bar">', unsafe_allow_html=True)
+c_plus, c_text, c_send = st.columns([1, 10, 1])
+
+with c_plus:
     with st.popover("➕"):
-        st.markdown("**Attach to your next message**")
+        st.markdown("**Attach a file**")
         choice = st.radio("Type", ["Code / Text file", "CSV / Data file", "Image"], label_visibility="collapsed")
         if choice == "Code / Text file":
             f = st.file_uploader("Upload code/text", type=["py", "txt", "md", "ipynb"], key="up_code")
@@ -112,12 +115,22 @@ with col_plus:
             if st.button("Remove attachment"):
                 st.session_state.uploaded_file = None
                 st.session_state.uploaded_kind = None
-with col_note:
-    if st.session_state.uploaded_file is not None:
-        st.caption(f"📎 {st.session_state.uploaded_file.name} will be attached to your next message")
 
-# ---------- Chat input ----------
-prompt = st.chat_input("Ask your Data Science question...")
+with c_text:
+    st.text_input("msg", key="chat_text", placeholder="Ask your Data Science question...",
+                   label_visibility="collapsed")
+with c_send:
+    send_clicked = st.button("↑", key="send_btn")
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+if st.session_state.uploaded_file is not None:
+    st.caption(f"📎 {st.session_state.uploaded_file.name} will be attached to your next message")
+
+prompt = None
+if send_clicked and st.session_state.get("chat_text"):
+    prompt = st.session_state.chat_text
+    st.session_state.clear_input = True
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
