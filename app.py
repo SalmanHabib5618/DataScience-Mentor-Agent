@@ -3,137 +3,91 @@ from ds_mentor_agent import app
 
 st.set_page_config(page_title="DS Mentor", page_icon="🧠", layout="centered")
 
-# ---------- Theme definitions ----------
-THEMES = {
-    "Midnight Gold": {
-        "bg": "#0F172A", "card": "#1E293B", "border": "#334155",
-        "text": "#F8FAFC", "sub": "#94A3B8", "accent": "#D4A853", "accent_text": "#0F172A",
-    },
-    "Royal Purple": {
-        "bg": "#150E29", "card": "#241A44", "border": "#3D2E68",
-        "text": "#F5F3FF", "sub": "#B9A9E8", "accent": "#A78BFA", "accent_text": "#150E29",
-    },
-    "Forest Calm": {
-        "bg": "#0B1F17", "card": "#163527", "border": "#2A5A41",
-        "text": "#F0FAF5", "sub": "#8FC9AC", "accent": "#4ADE80", "accent_text": "#0B1F17",
-    },
-    "Clean Light": {
-        "bg": "#F8FAFC", "card": "#FFFFFF", "border": "#E2E8F0",
-        "text": "#0F172A", "sub": "#64748B", "accent": "#2563EB", "accent_text": "#FFFFFF",
-    },
-    "Sunset Vibes": {
-        "bg": "#2B0B1F", "card": "#421433", "border": "#6B2350",
-        "text": "#FFF1F5", "sub": "#F4A8C6", "accent": "#FB7185", "accent_text": "#2B0B1F",
-    },
-    "Ocean Breeze": {
-        "bg": "#031B2E", "card": "#0B3050", "border": "#155178",
-        "text": "#EAF6FF", "sub": "#8FC7E8", "accent": "#22D3EE", "accent_text": "#031B2E",
-    },
-}
+# ---------- Warm Paper theme ----------
+BG = "#FDFBF7"
+CARD = "#FFFFFF"
+BORDER = "#EDE3D3"
+TEXT = "#2B2620"
+SUB = "#A99E8C"
+ACCENT = "#B45309"
+ACCENT_TEXT = "#FFFFFF"
 
-if "theme_name" not in st.session_state:
-    st.session_state.theme_name = "Midnight Gold"
-T = THEMES[st.session_state.theme_name]
-
-# ---------- Sidebar ----------
-with st.sidebar:
-    st.markdown("### 🧠 DS Mentor")
-    st.caption("Your personal Data Science mentor")
-    st.session_state.theme_name = st.selectbox("Theme", list(THEMES.keys()),
-                                                 index=list(THEMES.keys()).index(st.session_state.theme_name))
-    T = THEMES[st.session_state.theme_name]
-    st.divider()
-    if st.button("🗑️ Clear conversation", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-
-# ---------- CSS (theme-driven) ----------
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Inter:wght@400;500;600&display=swap');
 html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; }}
-.stApp {{ background-color: {T['bg']}; color: {T['text']}; }}
-section[data-testid="stSidebar"] {{ background-color: {T['card']}; border-right: 1px solid {T['border']}; }}
-section[data-testid="stSidebar"] * {{ color: {T['text']} !important; }}
-section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {{
-  background-color: {T['bg']} !important; border-color: {T['border']} !important;
-}}
-section[data-testid="stSidebar"] button {{
-  background-color: {T['bg']} !important; border: 1px solid {T['border']} !important;
-}}
+.stApp {{ background-color: {BG}; color: {TEXT}; }}
 
-.header-row {{ display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.2rem; }}
-
-.hero-title {{ font-family: 'Lora', serif; font-size: 1.8rem; font-weight: 700; color: {T['text']}; }}
-.hero-sub {{ color: {T['sub']}; font-size: 0.9rem; margin-bottom: 1rem; }}
+.header-wrap {{ text-align: center; margin-bottom: 1.2rem; }}
+.header-row {{ display: flex; align-items: center; justify-content: center; gap: 0.6rem; }}
+.hero-title {{ font-family: 'Lora', serif; font-size: 2rem; font-weight: 700; color: {TEXT}; }}
+.hero-sub {{ color: {SUB}; font-size: 0.9rem; margin-top: 0.1rem; }}
 
 .bubble-user {{
-  background-color: {T['accent']}; color: {T['accent_text']}; border-radius: 14px 14px 2px 14px;
-  padding: 0.7rem 1rem; margin: 0.4rem 0; max-width: 75%; margin-left: auto; text-align: left;
+  background-color: {ACCENT}; color: {ACCENT_TEXT}; border-radius: 14px 14px 2px 14px;
+  padding: 0.7rem 1rem; margin: 0.4rem 0; max-width: 75%; margin-left: auto;
 }}
 .bubble-assistant {{
-  background-color: {T['card']}; color: {T['text']}; border: 1px solid {T['border']};
+  background-color: {CARD}; color: {TEXT}; border: 1px solid {BORDER};
   border-radius: 14px 14px 14px 2px; padding: 0.7rem 1rem; margin: 0.4rem 0; max-width: 75%;
 }}
 .row-user {{ display: flex; justify-content: flex-end; }}
 .row-assistant {{ display: flex; justify-content: flex-start; }}
 
 .input-bar {{
-  background-color: {T['card']}; border: 1px solid {T['border']}; border-radius: 14px;
+  background-color: {CARD}; border: 1px solid {BORDER}; border-radius: 14px;
   padding: 0.4rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;
 }}
 .input-bar [data-testid="stPopover"] button, .input-bar .stButton button {{
-  background-color: transparent !important; color: {T['accent']} !important;
-  border: 1px solid {T['border']} !important; border-radius: 50% !important;
+  background-color: #FCEEDD !important; color: {ACCENT} !important;
+  border: 1px solid {BORDER} !important; border-radius: 50% !important;
   width: 38px !important; height: 38px !important; font-size: 1.1rem !important; padding: 0 !important;
+}}
+.input-bar .stButton button:last-child {{
+  background-color: {ACCENT} !important; color: #fff !important;
 }}
 .input-bar .stTextInput input {{
   background-color: transparent !important; border: none !important;
-  color: {T['text']} !important; box-shadow: none !important;
+  color: {TEXT} !important; box-shadow: none !important;
 }}
-.input-bar .stTextInput input::placeholder {{ color: {T['sub']} !important; }}
+.input-bar .stTextInput input::placeholder {{ color: {SUB} !important; }}
 .input-bar .stTextInput > div {{ border: none !important; background: transparent !important; }}
-[data-testid="stPopoverBody"] {{ background-color: {T['card']} !important; border: 1px solid {T['border']} !important; }}
-.stFileUploader > div > div {{ background-color: {T['bg']}; border: 1px dashed {T['border']}; border-radius: 8px; }}
+[data-testid="stPopoverBody"] {{ background-color: {CARD} !important; border: 1px solid {BORDER} !important; }}
+.stFileUploader > div > div {{ background-color: {BG}; border: 1px dashed {BORDER}; border-radius: 8px; }}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- Header ----------
+# ---------- Header: logo + name + description, centered ----------
 LOGO_SVG = f"""
 <svg width="44" height="44" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="30" cy="30" r="29" fill="{T['bg']}" stroke="{T['accent']}" stroke-width="1.5"/>
-  <circle cx="20" cy="22" r="3.2" fill="{T['accent']}"/>
-  <circle cx="40" cy="22" r="3.2" fill="{T['accent']}"/>
-  <circle cx="30" cy="40" r="3.2" fill="{T['accent']}"/>
-  <line x1="20" y1="22" x2="40" y2="22" stroke="{T['accent']}" stroke-width="1.2"/>
-  <line x1="20" y1="22" x2="30" y2="40" stroke="{T['accent']}" stroke-width="1.2"/>
-  <line x1="40" y1="22" x2="30" y2="40" stroke="{T['accent']}" stroke-width="1.2"/>
+  <circle cx="30" cy="30" r="29" fill="{BG}" stroke="{ACCENT}" stroke-width="1.5"/>
+  <circle cx="20" cy="22" r="3.2" fill="{ACCENT}"/>
+  <circle cx="40" cy="22" r="3.2" fill="{ACCENT}"/>
+  <circle cx="30" cy="40" r="3.2" fill="{ACCENT}"/>
+  <line x1="20" y1="22" x2="40" y2="22" stroke="{ACCENT}" stroke-width="1.2"/>
+  <line x1="20" y1="22" x2="30" y2="40" stroke="{ACCENT}" stroke-width="1.2"/>
+  <line x1="40" y1="22" x2="30" y2="40" stroke="{ACCENT}" stroke-width="1.2"/>
 </svg>
 """
 st.markdown(f"""
-<div class="header-row">
-  {LOGO_SVG}
-  <div>
-    <div class="hero-title">DS Mentor</div>
-  </div>
+<div class="header-wrap">
+  <div class="header-row">{LOGO_SVG}<div class="hero-title">DS Mentor</div></div>
+  <div class="hero-sub">Your personal Data Science mentor — ask anything.</div>
 </div>
 """, unsafe_allow_html=True)
-st.markdown('<div class="hero-sub">Ask anything about your Data Science journey.</div>', unsafe_allow_html=True)
 
 # ---------- State ----------
 for key, default in [("messages", []), ("uploaded_file", None), ("uploaded_kind", None), ("clear_input", False)]:
     if key not in st.session_state:
         st.session_state[key] = default
 
-# ---------- Render chat history ----------
-chat_area = st.container()
-with chat_area:
-    for msg in st.session_state.messages:
-        row = "row-user" if msg["role"] == "user" else "row-assistant"
-        bubble = "bubble-user" if msg["role"] == "user" else "bubble-assistant"
-        st.markdown(f'<div class="{row}"><div class="{bubble}">{msg["content"]}</div></div>', unsafe_allow_html=True)
+# ---------- Chat history ----------
+for msg in st.session_state.messages:
+    row = "row-user" if msg["role"] == "user" else "row-assistant"
+    bubble = "bubble-user" if msg["role"] == "user" else "bubble-assistant"
+    st.markdown(f'<div class="{row}"><div class="{bubble}">{msg["content"]}</div></div>', unsafe_allow_html=True)
 
-# ---------- Merged input bar ----------
+# ---------- Merged input bar: [+] [text] [send] ----------
 if st.session_state.clear_input:
     st.session_state.chat_text = ""
     st.session_state.clear_input = False
