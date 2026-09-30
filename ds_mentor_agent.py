@@ -10,7 +10,7 @@ from langgraph.graph import StateGraph, END
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
+llm = ChatGoogleGenerativeAI(model="gemini-flash-latest")
 
 
 def extract_text(content):
@@ -88,12 +88,9 @@ def router_node(state: AgentState) -> AgentState:
     prompt = f"""Classify the query into exactly ONE of these words: {options}
 Query: {state['query']}
 Answer with one word only."""
-    try:
-        result = llm.invoke(prompt)
-        intent = extract_text(result.content).strip().lower()
-        state["intent"] = intent if intent in INTENTS else "concept"
-    except Exception:
-        state["intent"] = "concept"  # safe fallback, skip router on rate-limit
+    result = llm.invoke(prompt)
+    intent = extract_text(result.content).strip().lower()
+    state["intent"] = intent if intent in INTENTS else "concept"
     return state
 
 
