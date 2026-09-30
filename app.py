@@ -2,6 +2,7 @@ import streamlit as st
 from ds_mentor_agent import app
 
 st.set_page_config(page_title="DS Mentor", page_icon="🧠", layout="centered")
+st.markdown('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">', unsafe_allow_html=True)
 
 # ---------- Warm Paper theme ----------
 BG = "#FDFBF7"
@@ -54,6 +55,14 @@ html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; }}
 .input-bar .stTextInput > div {{ border: none !important; background: transparent !important; }}
 [data-testid="stPopoverBody"] {{ background-color: {CARD} !important; border: 1px solid {BORDER} !important; }}
 .stFileUploader > div > div {{ background-color: {BG}; border: 1px dashed {BORDER}; border-radius: 8px; }}
+
+/* Force input row to stay side-by-side on mobile (prevents Streamlit's default column stacking) */
+[data-testid="stHorizontalBlock"] {{
+  flex-wrap: nowrap !important; align-items: center !important; gap: 0.3rem !important;
+}}
+[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ flex: 0 0 44px !important; min-width: 44px !important; width: 44px !important; }}
+[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ flex: 1 1 auto !important; min-width: 0 !important; }}
+[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ flex: 0 0 44px !important; min-width: 44px !important; width: 44px !important; }}
 </style>
 """, unsafe_allow_html=True)
 
