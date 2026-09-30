@@ -13,6 +13,21 @@ os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 llm = ChatGoogleGenerativeAI(model="gemini-flash-latest")
 
 
+import time
+
+
+def invoke_with_retry(prompt, max_retries=3, delay=3):
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            return llm.invoke(prompt)
+        except Exception as e:
+            last_error = e
+            if attempt < max_retries - 1:
+                time.sleep(delay)
+    raise last_error
+
+
 def extract_text(content):
     if isinstance(content, list):
         return "".join(part.get("text", "") if isinstance(part, dict) else str(part) for part in content)
@@ -88,7 +103,7 @@ def router_node(state: AgentState) -> AgentState:
     prompt = f"""Classify the query into exactly ONE of these words: {options}
 Query: {state['query']}
 Answer with one word only."""
-    result = llm.invoke(prompt)
+    result = invoke_with_retry(prompt)
     intent = extract_text(result.content).strip().lower()
     state["intent"] = intent if intent in INTENTS else "concept"
     return state
@@ -98,7 +113,7 @@ def assist_node(state: AgentState) -> AgentState:
     system_prompt = SYSTEM_PROMPTS[state["intent"]]
     prompt = f"{system_prompt}\n\nBeginner's question: {state['query']}"
     try:
-        result = llm.invoke(prompt)
+        result = invoke_with_retry(prompt)
         state["response"] = extract_text(result.content)
     except Exception as e:
         state["response"] = f"Sorry, something went wrong reaching the AI model. Please try again shortly. ({type(e).__name__})"
