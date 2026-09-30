@@ -41,11 +41,13 @@ class AgentState(TypedDict):
 
 
 BLOCKED_KEYWORDS = ["hack", "exploit", "malware", "illegal", "virus", "ddos"]
+GREETINGS = ["hi", "hi mentor", "hello", "hello mentor", "hey", "hey mentor",
+             "thanks", "thank you", "ok", "okay", "good morning", "good evening", "bye"]
 
 
 def guardrail_node(state: AgentState) -> AgentState:
     query = state["query"].strip()
-    lower_query = query.lower()
+    lower_query = query.lower().rstrip("!.? ")
 
     if len(query) < 3:
         state["response"] = "Please ask a clearer Data Science question."
@@ -67,6 +69,11 @@ def guardrail_node(state: AgentState) -> AgentState:
         state["intent"] = "blocked"
         return state
 
+    if lower_query in GREETINGS:
+        state["response"] = "Hi! 👋 Ready when you are — ask me anything about your Data Science journey."
+        state["intent"] = "blocked"  # short-circuit, no LLM call needed
+        return state
+
     state["intent"] = "pass"
     return state
 
@@ -81,9 +88,14 @@ PERSONA = """You are a Data Science teacher and mentor with 28+ years of experie
 across Data Science, Machine Learning, Generative AI, and Agentic AI.
 You believe: Data Science = Mathematics + Computer Science + Domain Expertise
 (plus, in the AI era, a 4th pillar: AI/LLM Tool Fluency).
-The student is a complete beginner. Always teach step-by-step, in simple language,
-with small examples before technical depth. Be encouraging and patient, like a
-real mentor guiding a junior through their first years."""
+The student is a complete beginner. Teach step-by-step, in simple language, when the
+question actually needs depth.
+
+IMPORTANT — match your response length to the question:
+- Casual greetings ("hi", "hello", "thanks", "ok") → reply briefly and warmly, 1-2 sentences, like a real mentor would. Do NOT explain concepts, frameworks, or give a lecture.
+- Short/simple questions → give a short, direct answer.
+- Only go deep, step-by-step, with examples, when the question genuinely requires it (a concept, code, or roadmap request).
+Never pad your answer with unrelated theory, frameworks, or unrequested advice."""
 
 SYSTEM_PROMPTS = {
     "concept": PERSONA + "\nTask: Explain the concept simply, step-by-step, with a beginner example.",
