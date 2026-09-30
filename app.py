@@ -1,7 +1,7 @@
 import streamlit as st
 from ds_mentor_agent import app
 
-st.set_page_config(page_title="DS Mentor", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="DS Mentor", page_icon="🧠", layout="centered")
 
 # ---------- Theme definitions ----------
 THEMES = {
@@ -20,6 +20,14 @@ THEMES = {
     "Clean Light": {
         "bg": "#F8FAFC", "card": "#FFFFFF", "border": "#E2E8F0",
         "text": "#0F172A", "sub": "#64748B", "accent": "#2563EB", "accent_text": "#FFFFFF",
+    },
+    "Sunset Vibes": {
+        "bg": "#2B0B1F", "card": "#421433", "border": "#6B2350",
+        "text": "#FFF1F5", "sub": "#F4A8C6", "accent": "#FB7185", "accent_text": "#2B0B1F",
+    },
+    "Ocean Breeze": {
+        "bg": "#031B2E", "card": "#0B3050", "border": "#155178",
+        "text": "#EAF6FF", "sub": "#8FC7E8", "accent": "#22D3EE", "accent_text": "#031B2E",
     },
 }
 
@@ -46,6 +54,15 @@ st.markdown(f"""
 html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; }}
 .stApp {{ background-color: {T['bg']}; color: {T['text']}; }}
 section[data-testid="stSidebar"] {{ background-color: {T['card']}; border-right: 1px solid {T['border']}; }}
+section[data-testid="stSidebar"] * {{ color: {T['text']} !important; }}
+section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {{
+  background-color: {T['bg']} !important; border-color: {T['border']} !important;
+}}
+section[data-testid="stSidebar"] button {{
+  background-color: {T['bg']} !important; border: 1px solid {T['border']} !important;
+}}
+
+.header-row {{ display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.2rem; }}
 
 .hero-title {{ font-family: 'Lora', serif; font-size: 1.8rem; font-weight: 700; color: {T['text']}; }}
 .hero-sub {{ color: {T['sub']}; font-size: 0.9rem; margin-bottom: 1rem; }}
@@ -82,7 +99,25 @@ section[data-testid="stSidebar"] {{ background-color: {T['card']}; border-right:
 """, unsafe_allow_html=True)
 
 # ---------- Header ----------
-st.markdown('<div class="hero-title">DS Mentor</div>', unsafe_allow_html=True)
+LOGO_SVG = f"""
+<svg width="44" height="44" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30" cy="30" r="29" fill="{T['bg']}" stroke="{T['accent']}" stroke-width="1.5"/>
+  <circle cx="20" cy="22" r="3.2" fill="{T['accent']}"/>
+  <circle cx="40" cy="22" r="3.2" fill="{T['accent']}"/>
+  <circle cx="30" cy="40" r="3.2" fill="{T['accent']}"/>
+  <line x1="20" y1="22" x2="40" y2="22" stroke="{T['accent']}" stroke-width="1.2"/>
+  <line x1="20" y1="22" x2="30" y2="40" stroke="{T['accent']}" stroke-width="1.2"/>
+  <line x1="40" y1="22" x2="30" y2="40" stroke="{T['accent']}" stroke-width="1.2"/>
+</svg>
+"""
+st.markdown(f"""
+<div class="header-row">
+  {LOGO_SVG}
+  <div>
+    <div class="hero-title">DS Mentor</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 st.markdown('<div class="hero-sub">Ask anything about your Data Science journey.</div>', unsafe_allow_html=True)
 
 # ---------- State ----------
